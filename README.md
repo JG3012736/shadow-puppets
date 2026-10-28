@@ -26,12 +26,21 @@ The exhibition version was projected as a large circle onto the studio wall, wit
 
 ## Process
 
-I had previously taken a class on Chinese shadow puppetry with Professor DeYoung and felt compelled to bring that visual language into this space. Instead of physical puppets, the puppets could be created with the software we were encouraged to explore. I was also inspired by Professor Levin's works that bring the movement and tracking of bodies into the digital space, and I wanted to combine the essence of both areas. The entire exhibition was about projecting light and shadow, so the piece needed to feel like a shadow being cast onto a cave wall.
+The piece combines two influences:
+- Professor DeYoung's course on Chinese shadow puppetry, which established the visual language.
+- Professor Levin's work on body tracking and interaction.
 
-The two hardest technical parts were:
+The physical puppet is replaced with a computational one, driven by real-time hand tracking. The exhibition's theme was projected light and shadow, so the rendering goal was a shadow that reads as cast onto a cave wall rather than drawn on a screen.
 
-1. **Making hands look like shadows, not skeletons.** I connected the ml5.js HandPose model and repeatedly tested it so the contour of the hands looked accurate to a real shadow instead of a tracked skeleton.
-2. **The soft edge.** With help from Professor Levin, I tried different techniques to add a soft, blurred edge so the shadows looked like they were actually being projected onto a cave.
+**Pipeline**
+1. **Hand tracking:** ml5.js HandPose (MediaPipe runtime) tracks up to two hands from a 640×480 webcam feed and returns 21 keypoints per hand, which are scaled to the canvas.
+2. **Shadow geometry:** each finger is drawn as a continuous 20px stroke with rounded joins along its keypoints. Bézier curves fill in the webbing between fingers and the outline of the palm. The z-depth of the middle-finger knuckle relative to the wrist detects whether the palm faces away, and the contour offset changes to match. An optional mode extends a forearm from the wrist.
+3. **Projection effect:** all shadows render to an offscreen graphics buffer. A shear transform simulates an off-axis projection angle, a Gaussian blur softens the edges, and the buffer is composited over a cave-wall texture at reduced opacity.
+4. **Recording and playback:** while recording, every frame of hand keypoints is deep-copied into a sequence. Recorded puppets loop independently and can be repositioned and scaled with keyboard or mouse input.
+
+**Key challenges**
+1. **Contour vs. skeleton.** Raw HandPose output reads as a joint-and-bone skeleton. Getting a believable shadow silhouette took repeated tuning of stroke weight, joins and Bézier webbing against live hand input.
+2. **Soft-edge projection.** Developed with Professor Levin's guidance. Several approaches were tested before settling on rendering to a separate buffer, then applying blur, shear and opacity blending so the shadow looks like light falling onto a textured surface.
 
 ## Controls
 
